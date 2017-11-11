@@ -1,88 +1,107 @@
 #include"stdio.h"
 #include"stdlib.h"
-struct cola
-{
-	struct elementos *frente;
-	struct elementos *final;
-};
-
-struct elementos{
-	struct elementos *sig;
-	int id;
-	char nombre[20];
-};
-
-struct cola2{
-	struct camino *frente;
-	struct camino *fin;
-};
-
-struct camino{
-	struct camino *siguiente;
+#include "string.h"
+struct cola{
+	struct cola *sig;
 	float peso;
+	char ciudad[20];
 	int id;
 };
 
-struct elementos *crea_nodo(struct cola **nodo,int id){
-	struct elementos *nuevo=(struct elementos *)malloc(sizeof(struct elementos));
+
+struct lista{
+	int id;
+	char ciudad[20];
+	struct cola *frente;
+	struct cola *final;
+	struct lista *siguiente;
+};
+
+int inserta_lista(struct lista **inicio,int id){
+	struct lista *nuevo=(struct lista*)malloc(sizeof(struct lista));
 	if(!nuevo){
-		return NULL;
+		return 0;
 	}
-	printf("Ciudad %d:",id);
+	printf("Inserte ciudad: ");
 	fflush(stdin);
-	scanf("%[^\n]",nuevo->nombre);
+	scanf("%[^\n]",nuevo->ciudad);
 	nuevo->id=id;
-	nuevo->sig=NULL;
-	if((*nodo)->final==NULL){
-		(*nodo)->frente=nuevo;
-	}else{
-		(*nodo)->final->sig=nuevo;
-	}
-	(*nodo)->final=nuevo;
-	return (*nodo)->final;
+	nuevo->frente=NULL;
+	nuevo->final=NULL;
+	nuevo->siguiente=*inicio;
+	*inicio=nuevo;
 }
 
-void mostrar_ciudades(struct elementos *frente){
-	if(frente){
-		printf("\nCiudad:%s",frente->nombre);
-		mostrar_ciudades(frente->sig);
+void mostrar_ciudad(struct lista *inicio){
+	if(inicio){
+		printf("%s\n",inicio->ciudad);
+		mostrar_ciudad(inicio->siguiente);
 	}
 	return ;
 }
 
-int crea_cola(struct cola **nodo){
-	struct cola *nuevo=(struct cola *)malloc(sizeof(struct cola));
+int crea_camino(struct cola **frente,struct cola **final,struct lista *inicio,struct lista *origen){
+	if(inicio==NULL){
+		return 0;
+	}
+	struct cola *nuevo=(struct cola*)malloc(sizeof(struct cola));
 	if(!nuevo){
 		return 0;
 	}
-	nuevo->frente=NULL;
-	nuevo->final=NULL;
-	*nodo=nuevo;
-	return 1;
+	//printf("\nOrigen:%s",origen->ciudad);  //Necesitamos saber si es la misma ciudad para asignarle un peso de 0 o si tiene distancia
+	strcpy(nuevo->ciudad,inicio->ciudad); 
+	if(strcmp(nuevo->ciudad,origen->ciudad)==0){
+		//Son iguales
+		nuevo->peso=0;
+	}else{
+		printf("\nDistancia de %s a %s: ",origen->ciudad,nuevo->ciudad);
+		scanf("%f",&nuevo->peso);
+	}
+	nuevo->sig=NULL;
+	if(*final==NULL){
+		*frente=nuevo;
+	}else{
+		(*final)->sig=nuevo;
+	}
+	*final=nuevo;
+	crea_camino(frente,final,inicio->siguiente,origen);
 }
 
+int llena_grafo(struct lista **inicio,struct lista *aux){
+	if(!*inicio){
+		return 0;
+	}
+	crea_camino(&(*inicio)->frente,&(*inicio)->final,aux,*inicio);
+	llena_grafo(&(*inicio)->siguiente,aux);
+}
+
+void mostrar_grafo2(struct cola *frente){
+	if(frente){
+		printf("\t|%s ->Distancia: %0.2f|",frente->ciudad,frente->peso);
+		mostrar_grafo2(frente->sig);	
+	}
+	return ;
+}
+
+void mostrar_grafo(struct lista *inicio){
+	if(inicio){
+		printf("\nCiudidad:%s \n",inicio->ciudad);
+		mostrar_grafo2(inicio->frente);
+		mostrar_grafo(inicio->siguiente);
+	}
+	return ;
+}
 int main(){
-	struct cola *nodo=NULL;
+	struct lista *inicio=NULL;
 	int cant,i=1,opc;
-	
-	crea_cola(&nodo);
-	printf("\nCuanas ciudades insertara: ");
+	printf("Cuantas ciudades que insertara: ");
 	scanf("%d",&cant);
 	do{
-		crea_nodo(&nodo,i);
+		inserta_lista(&inicio,i);	
 		cant=cant-1;
 		i=i+1;
 	}while(cant>0);
-	
-	do{
-		printf("\n1.Mostrar ciudades\n2.Salir\nOpcion:");
-		scanf("%d",&opc);
-		switch(opc){
-			case 1: mostrar_ciudades(nodo->frente); break;
-		}
-	printf("\n");
-	system("pause");
-	system("cls");
-	}while(opc!=2);
+	llena_grafo(&inicio,inicio);
+	mostrar_grafo(inicio);
 	return 0;
 }
