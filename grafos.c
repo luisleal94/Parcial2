@@ -1,107 +1,641 @@
-#include"stdio.h"
-#include"stdlib.h"
-#include "string.h"
-struct cola{
-	struct cola *sig;
-	float peso;
-	char ciudad[20];
-	int id;
+# include "iostream"
+# include <conio.h>
+# include <stdio.h>
+# include <stdlib.h>
+
+using namespace std;
+
+struct vertice {
+       char nod;
+       int marca;
+       struct vertice *sig;
+       struct arco *arc;
+};
+
+struct arco {
+       struct vertice *ver;
+       int marca;
+       int suma;
+       int clave;
+       struct arco *sig;
 };
 
 
-struct lista{
-	int id;
-	char ciudad[20];
-	struct cola *frente;
-	struct cola *final;
-	struct lista *siguiente;
-};
+struct vertice *pri, *nue, *aux, *ult, *aux2;
+struct arco *nueArc, *auxArc, *arcMen, *auxArc2, *antArc;
+char auxNod, auxNod2, ban2, let;
+int ban, enlace, ban3, ban4, numVer;
 
-int inserta_lista(struct lista **inicio,int id){
-	struct lista *nuevo=(struct lista*)malloc(sizeof(struct lista));
-	if(!nuevo){
-		return 0;
-	}
-	printf("Inserte ciudad: ");
-	fflush(stdin);
-	scanf("%[^\n]",nuevo->ciudad);
-	nuevo->id=id;
-	nuevo->frente=NULL;
-	nuevo->final=NULL;
-	nuevo->siguiente=*inicio;
-	*inicio=nuevo;
+void actualizarCampos ();
+void crearVertice();
+void enlazarVertices();
+void enlazar();
+void listarAdyacencia();
+void obtenerArcoMenor();
+void listarAdyacenciaPrim ();
+void sumaCaminos();
+
+void crearVertice () {  //ESTA FUNCION USA COLA
+     system ("cls");
+     if (pri == NULL){
+        pri = new vertice;
+        cout << "El Grafo no tiene vertices\nDigite la letra del Primer Nodo: ";
+        cin >> pri->nod;
+        pri->marca = 0;
+        pri->arc = NULL;
+        pri->sig = NULL;
+        ult = pri;
+        cout << "\nNodo registrado correctamente.";
+     }
+     else {
+          cout << "Digite la letra del vertice: ";
+          cin >> let;
+          do {
+              aux = pri;
+              ban = 0;
+              while (aux != NULL){
+                    if (aux->nod == let){
+                          ban = 1;
+                    }
+                    aux = aux->sig;
+              }
+              if (ban == 1) {
+                     cout << "\nEsa letra clave ya fue usada, igual que las siguientes:\n";
+                     aux = pri;
+                     while (aux != NULL) {
+                           cout << aux->nod << " ";
+                           aux = aux->sig;
+                     }
+                     cout << "\nDigita una letra diferente: ";
+                     cin >> let;
+              }
+          }while (ban == 1);
+          nue = new vertice;
+          nue->nod = let;
+          nue->marca = 0;
+          nue->sig = NULL;
+          nue->arc = NULL;
+          ult->sig = nue;
+          ult = nue;
+          cout << "\nNodo registrado correctamente.";
+          /*cout << "\nAhora que existe un nuevo vertice desea crear enlaces? s/n: "; 
+          cin >> ban2;
+          while (ban2 == 's'){
+                enlazarVertices();                
+                cout << "\n¿Desea crear otro enlace? s/n: ";
+                cin >> ban2;
+          } */     
+     }     
+     
+     getch();         
 }
 
-void mostrar_ciudad(struct lista *inicio){
-	if(inicio){
-		printf("%s\n",inicio->ciudad);
-		mostrar_ciudad(inicio->siguiente);
-	}
-	return ;
+void enlazarVertices () {
+     system ("cls");
+     if (pri != NULL){
+        aux = pri;
+        while (aux != NULL){
+              cout << aux->nod << "\n";
+              aux = aux->sig;
+        }
+        cout << "\nDigite la letra del nodo al cual desea enlazar: ";
+        cin >> auxNod;        
+        ban = 0;
+        while (ban == 0){
+              aux = pri;
+              while (aux != NULL && ban == 0){
+                   if (aux->nod == auxNod){
+                      ban = 1;
+                   }
+                   aux = aux->sig;
+              }
+              if (ban == 0){
+                 cout << "\nEl nodo no existe\nPor favor digite uno de los listados anteriormente: ";
+                 cin >> auxNod;
+              }
+        }
+        cout << "\nEstos son los nodos disponibles para hacer el respectivo enlace:\n";
+        aux = pri;
+        aux2 = pri;
+        while (aux2->nod != auxNod){
+              aux2 = aux2->sig;
+        }
+        while (aux != NULL){
+              if (aux->nod != auxNod){
+                  auxArc = aux2->arc;
+                  ban4 = 0;
+                  while (auxArc != NULL && ban4 == 0){
+                        if (aux->nod == auxArc->ver->nod){
+                           ban4 = 1;
+                        }
+                        auxArc = auxArc->sig;
+                  }
+                  if (ban4 == 0){
+                     cout << aux->nod << "\n";
+                  }
+              }
+              
+              aux = aux->sig;
+        }
+        cout << "\nDigite la letra del nodo al cual desea enlazar el nodo elegido: ";
+        cin >> auxNod2;
+        ban = 0;
+        while (ban == 0){
+              aux = pri; 
+              while (auxNod2 == auxNod){
+                    cout << "\nNo se puede hacer ese enlace\nDigite otro nodo disponible: ";
+                    cin >> auxNod2;
+              }
+              while (aux != NULL && ban == 0){
+                   if (aux->nod == auxNod2){
+                      ban = 1;
+                   }
+                   aux = aux->sig;
+              }
+              if (ban == 0){
+                 cout << "\nEl nodo no existe\nPor favor digite uno de los listados anteriormente: ";
+                 cin >> auxNod2;
+              }
+        }        
+        aux = pri;
+        while (aux->nod != auxNod){
+              aux = aux->sig;
+        }        
+        auxArc = aux->arc;
+        ban3 = 0;
+        while (auxArc != NULL && ban3 == 0){
+              if (auxArc->ver->nod == auxNod2){
+                 ban3 = 1;
+              }
+              auxArc = auxArc->sig;
+        }
+        if (ban3 == 0){
+           enlazar();
+           cout << "\nEnlace creado correctamente.";
+        }
+        else {
+             cout << "\nEse enlace ya existe. Compruebe el enlace la proxima vez.";
+        }
+     }
 }
 
-int crea_camino(struct cola **frente,struct cola **final,struct lista *inicio,struct lista *origen){
-	if(inicio==NULL){
-		return 0;
-	}
-	struct cola *nuevo=(struct cola*)malloc(sizeof(struct cola));
-	if(!nuevo){
-		return 0;
-	}
-	//printf("\nOrigen:%s",origen->ciudad);  //Necesitamos saber si es la misma ciudad para asignarle un peso de 0 o si tiene distancia
-	strcpy(nuevo->ciudad,inicio->ciudad); 
-	if(strcmp(nuevo->ciudad,origen->ciudad)==0){
-		//Son iguales
-		nuevo->peso=0;
-	}else{
-		printf("\nDistancia de %s a %s: ",origen->ciudad,nuevo->ciudad);
-		scanf("%f",&nuevo->peso);
-	}
-	nuevo->sig=NULL;
-	if(*final==NULL){
-		*frente=nuevo;
-	}else{
-		(*final)->sig=nuevo;
-	}
-	*final=nuevo;
-	crea_camino(frente,final,inicio->siguiente,origen);
+void enlazar (){
+        aux = pri;
+        while (aux->nod != auxNod){
+              aux = aux->sig;
+        }
+        aux2 = pri;
+        while (aux2->nod != auxNod2){
+              aux2 = aux2->sig;
+        }
+        if (aux->arc == NULL){
+           nueArc = new arco;
+           nueArc->ver = aux2;
+           cout << "\nDigite el valor del enlace: ";
+           cin >> enlace;
+           while (nueArc->clave < 0){
+                 cout << "\nEl valor debe ser positivo\nDigite el valor del enlace: ";
+                 cin >> enlace;
+           }
+           nueArc->clave = enlace;
+           nueArc->marca = 0;
+           nueArc->suma = 0;
+           nueArc->sig = NULL;
+           aux->arc = nueArc;
+           if (aux2->arc == NULL){
+               nueArc = new arco;
+               nueArc->ver = aux;           
+               nueArc->clave = enlace;
+               nueArc->marca = 0;
+               nueArc->suma = 0;
+               nueArc->sig = NULL;
+               aux2->arc = nueArc;
+            }
+            else {
+               nueArc = new arco;
+               nueArc->ver = aux;
+               nueArc->clave = enlace;
+               nueArc->marca = 0;
+               nueArc->suma = 0;
+               nueArc->sig = NULL;
+               auxArc = aux2->arc;
+               while (auxArc->sig != NULL){
+                     auxArc = auxArc->sig;
+               }
+               auxArc->sig = nueArc;
+            }
+        }
+        else {
+           nueArc = new arco;
+           nueArc->ver = aux2;
+           cout << "\nDigite el valor del enlace: ";
+           cin >> enlace;
+           while (enlace < 0){
+                 cout << "\nEl valor debe ser positivo\nDigite el valor del enlace: ";
+                 cin >> enlace;
+           }
+           nueArc->clave = enlace;  
+           nueArc->marca = 0;
+           nueArc->suma = 0;         
+           nueArc->sig = NULL;
+           auxArc = aux->arc;
+           while (auxArc->sig != NULL){
+                 auxArc = auxArc->sig;
+           }
+           auxArc->sig = nueArc;
+           if (aux2->arc == NULL){
+               nueArc = new arco;
+               nueArc->ver = aux;           
+               nueArc->clave = enlace;
+               nueArc->marca = 0;
+               nueArc->suma = 0;
+               nueArc->sig = NULL;
+               aux2->arc = nueArc;
+            }
+            else {
+               nueArc = new arco;
+               nueArc->ver = aux;
+               nueArc->clave = enlace;
+               nueArc->marca = 0;
+               nueArc->suma = 0;
+               nueArc->sig = NULL;
+               auxArc = aux2->arc;
+               while (auxArc->sig != NULL){
+                     auxArc = auxArc->sig;
+               }
+               auxArc->sig = nueArc;
+            }
+        }
 }
 
-int llena_grafo(struct lista **inicio,struct lista *aux){
-	if(!*inicio){
-		return 0;
-	}
-	crea_camino(&(*inicio)->frente,&(*inicio)->final,aux,*inicio);
-	llena_grafo(&(*inicio)->siguiente,aux);
+void obtenerArcoMenor () {
+     aux2 = pri;
+     arcMen = NULL;
+     while (aux2 != NULL){
+           if (aux2->marca == 1){
+                      auxArc = aux2->arc;
+                      while (auxArc != NULL){
+                            if (auxArc->marca == 1){
+                                  if (arcMen == NULL){
+                                         arcMen = auxArc;
+                                  }
+                                  else{
+                                       if (auxArc->clave < arcMen->clave){
+                                              arcMen = auxArc;
+                                       }
+                                  }
+                            }
+                            auxArc = auxArc->sig;
+                      }
+           }
+           aux2 = aux2->sig;
+     }
+     arcMen->marca = 3;
+     arcMen->ver->marca = 1;
 }
 
-void mostrar_grafo2(struct cola *frente){
-	if(frente){
-		printf("\t|%s ->Distancia: %0.2f|",frente->ciudad,frente->peso);
-		mostrar_grafo2(frente->sig);	
-	}
-	return ;
+void obtenerSumaMenor () {
+     aux2 = pri;
+     arcMen = NULL;
+     while (aux2 != NULL){
+           if (aux2->marca == 1){
+                      auxArc = aux2->arc;
+                      while (auxArc != NULL){
+                            if (auxArc->marca == 1){
+                                  if (arcMen == NULL){
+                                         arcMen = auxArc;
+                                  }
+                                  else{
+                                       if (auxArc->suma < arcMen->suma){
+                                              arcMen = auxArc;
+                                       }
+                                  }
+                            }
+                            auxArc = auxArc->sig;
+                      }
+           }
+           aux2 = aux2->sig;
+     }
+     arcMen->marca = 3;
+     arcMen->ver->marca = 1;
+     auxArc = arcMen->ver->arc;
+     while (auxArc != NULL){
+           auxArc->suma = arcMen->suma + auxArc->clave;
+           auxArc = auxArc->sig;
+     }
 }
 
-void mostrar_grafo(struct lista *inicio){
-	if(inicio){
-		printf("\nCiudidad:%s \n",inicio->ciudad);
-		mostrar_grafo2(inicio->frente);
-		mostrar_grafo(inicio->siguiente);
-	}
-	return ;
+void paso2 (){
+            obtenerArcoMenor();
+            cout << "\nEl arco menor es: "<< arcMen->ver->nod << " vale: " << arcMen->clave;
+            getch();
+            aux = arcMen->ver;
+            auxArc = aux->arc;
+            while (auxArc != NULL){
+                  if (auxArc->ver->marca == 0){
+                         aux2 = pri;
+                         while (aux2 != NULL){
+                               if (aux2 != aux && aux2->marca == 1){
+                                     auxArc2 = aux2->arc;
+                                     while (auxArc2 != NULL){
+                                           if (auxArc->ver->nod == auxArc2->ver->nod){
+                                                  if (auxArc->clave < auxArc2->clave){
+                                                         auxArc2->marca = 2;
+                                                         auxArc->marca = 1;
+                                                  }
+                                                  else {
+                                                       auxArc->marca = 2;
+                                                       auxArc2->marca = 1;
+                                                  }
+                                           }
+                                           auxArc2 = auxArc2->sig;
+                                     }
+                               }
+                               aux2 = aux2->sig;
+                         }
+                         if (auxArc->marca == 0){
+                                auxArc->marca = 1;
+                         }
+                  }
+                  else {
+                       auxArc->marca = 2;
+                  }
+                  auxArc = auxArc->sig;
+            }
 }
-int main(){
-	struct lista *inicio=NULL;
-	int cant,i=1,opc;
-	printf("Cuantas ciudades que insertara: ");
-	scanf("%d",&cant);
-	do{
-		inserta_lista(&inicio,i);	
-		cant=cant-1;
-		i=i+1;
-	}while(cant>0);
-	llena_grafo(&inicio,inicio);
-	mostrar_grafo(inicio);
-	return 0;
+
+
+void paso2Dijkstra () {
+            obtenerSumaMenor();
+            cout << "\nLa sumatoria hasta el arco " << arcMen->ver->nod << " es: "<< arcMen->suma;
+            getch();
+            aux = arcMen->ver;
+            auxArc = aux->arc;
+            while (auxArc != NULL){
+                  if (auxArc->ver->marca == 0){
+                         aux2 = pri;
+                         while (aux2 != NULL){
+                               if (aux2 != aux && aux2->marca == 1){
+                                     auxArc2 = aux2->arc;
+                                     while (auxArc2 != NULL){
+                                           if (auxArc->ver->nod == auxArc2->ver->nod){
+                                                  if (auxArc->suma  < auxArc2->suma){
+                                                         auxArc2->marca = 2;
+                                                         auxArc->marca = 1;
+                                                  }
+                                                  else {
+                                                       auxArc->marca = 2;
+                                                       auxArc2->marca = 1;
+                                                  }
+                                           }
+                                           auxArc2 = auxArc2->sig;
+                                     }
+                               }
+                               aux2 = aux2->sig;
+                         }
+                         if (auxArc->marca == 0){
+                                auxArc->marca = 1;
+                                auxArc->suma = arcMen->suma + auxArc->clave;
+                         }
+                  }
+                  else {
+                       auxArc->marca = 2;
+                  }
+                  auxArc = auxArc->sig;
+            }
+}
+
+void algoritmoPrim () {
+     system("cls");
+     if (pri != NULL){
+            actualizarCampos();
+            cout << "Digite el vertice inicial: ";
+            cin >> auxNod;
+            ban = 0;
+            while (ban == 0){
+                  aux = pri;
+                  while (aux != NULL){
+                        if (aux->nod == auxNod){
+                               ban = 1;
+                        }
+                        aux = aux->sig;
+                  }
+                  if (ban == 0){
+                         cout << "\nNo existe un nodo con esa letra.";
+                         aux = pri;
+                         cout << "\n---Lista de Nodos---\n";
+                         while (aux != NULL){
+                               cout << aux->nod << " ";
+                               aux = aux->sig;
+                         }
+                         cout << "\nDigite uno de los anteriores nodos: ";
+                         cin >> auxNod;
+                  }
+            }
+            aux = pri;
+            while (aux->nod != auxNod){
+                  aux = aux->sig;
+            }
+            aux->marca = 1;
+            auxArc = aux->arc;
+            while (auxArc != NULL){
+                  auxArc->marca = 1;
+                  auxArc = auxArc->sig;
+            }
+            cout << "\nSe han marcado todos los arcos para el vertice elegido.";
+            ban2 = 1;
+            while (ban2 == 1){
+                  paso2();
+                  ban2 = 0;
+                  aux = pri;
+                  while (aux != NULL){
+                        if (aux->marca == 0){
+                               ban2 = 1;
+                        }
+                        aux = aux->sig;
+                  }
+            }
+            listarAdyacenciaPrim ();
+            sumaCaminos();
+     }
+     getch();
+}
+
+void listarAdyacencia () {
+     system ("cls");
+     if (pri != NULL){
+        aux = pri;
+        cout << "---Lista de Adyacencia---\n";
+        while (aux != NULL){
+              auxArc = aux->arc;
+              cout << "\n|\n" << aux->nod << "->";
+              while (auxArc != NULL){
+                    cout << auxArc->ver->nod << " ";
+                    auxArc = auxArc->sig;
+              }
+              aux = aux->sig;
+        }
+        getch();
+     }
+}
+
+void sumaCaminos () {
+     aux = pri;
+     int suma = 0;
+     while (aux != NULL){
+           auxArc = aux->arc;
+           while (auxArc != NULL){
+                 if (auxArc->marca == 3){
+                        suma = suma + auxArc->clave;
+                 }
+                 auxArc = auxArc->sig;
+           }
+           aux = aux->sig;
+     }
+     cout << "\nLa suma de los caminos es: " << suma;
+}
+
+void listarAdyacenciaPrim () {
+     if (pri != NULL){
+        aux = pri;
+        cout << "\n---Lista de Adyacencia---\n";
+        while (aux != NULL){
+              auxArc = aux->arc;
+              cout << "\n|\n" << aux->nod << "->";
+              while (auxArc != NULL){
+                    if (auxArc->marca == 3)
+                    cout << auxArc->ver->nod << " ";
+                    auxArc = auxArc->sig;
+              }
+              aux = aux->sig;
+        }
+     }
+}
+
+
+void liberarMemoria () {
+     if (pri != NULL){
+        aux = pri;
+        while (aux != NULL){
+              auxArc = aux->arc;
+              while (auxArc != NULL){
+                    aux->arc = aux->arc->sig;
+                    delete auxArc;
+                    auxArc = aux->arc;
+              }
+              pri = pri->sig;
+              delete aux;
+              aux = pri;
+        }
+     }
+     cout << "Memoria Libre";
+     getch();
+}
+
+
+void algoritmoDijkstra () {
+     system("cls");
+     if (pri != NULL){
+            actualizarCampos ();
+            cout << "Digite el vertice inicial: ";
+            cin >> auxNod;
+            ban = 0;
+            while (ban == 0){
+                  aux = pri;
+                  while (aux != NULL){
+                        if (aux->nod == auxNod){
+                               ban = 1;
+                        }
+                        aux = aux->sig;
+                  }
+                  if (ban == 0){
+                         cout << "\nNo existe un nodo con esa letra.";
+                         aux = pri;
+                         cout << "\n---Lista de Nodos---\n";
+                         while (aux != NULL){
+                               cout << aux->nod << " ";
+                               aux = aux->sig;
+                         }
+                         cout << "\nDigite uno de los anteriores nodos: ";
+                         cin >> auxNod;
+                  }
+            }
+            aux = pri;
+            while (aux->nod != auxNod){
+                  aux = aux->sig;
+            }
+            aux->marca = 1;
+            auxArc = aux->arc;
+            while (auxArc != NULL){
+                  auxArc->marca = 1;
+                  auxArc->suma = auxArc->clave;
+                  auxArc = auxArc->sig;
+            }
+            cout << "\nSe han trazado todos los arcos para el vertice elegido.";
+            ban2 = 1;
+            while (ban2 == 1){
+                  paso2Dijkstra();
+                  ban2 = 0;
+                  aux = pri;
+                  while (aux != NULL){
+                        if (aux->marca == 0){
+                               ban2 = 1;
+                        }
+                        aux = aux->sig;
+                  }
+            }
+            listarAdyacenciaPrim ();
+     }
+     getch();
+}
+
+void actualizarCampos () {
+     aux = pri;
+     while (aux != NULL){
+           auxArc = aux->arc;
+           while (auxArc != NULL){
+                 auxArc->marca = 0;
+                 auxArc->suma = 0;
+                 auxArc = auxArc->sig;
+           }
+           aux->marca = 0;
+           aux = aux->sig;
+     }
+}
+
+main (){
+    int op = 0;
+    do{
+       system("cls");
+       cout<<"---UNIVERSIDAD DE NARIÑO---";
+       cout<<"\n---FACULTAD DE INGENIERIA---";
+       cout<<"\n     INGENIERIA DE SISTEMAS";
+       cout<<"\n---TALLER 03. GRAFOS---";
+       cout<<"\nRealizado Por:";
+       cout<<"\n\nMario Florez";
+       cout<<"\nMarcelo Tabango";
+       cout<<"\n\n-----MENU-----";
+       cout<<"\n1. Crear Vertices.";
+       cout<<"\n2. Enlazar Vertices.";
+       cout<<"\n3. Listar Vertices con su lista de adyacencia.";
+       cout<<"\n4. Algoritmo de Prim.";
+       cout<<"\n5. Algoritmo de Dijkstra.";
+       cout<<"\n6. Liberar Memoria.";
+       cout<<"\n7. Salir";
+       cout<<"\n\nDigite la Opcion:==>";
+       cin>>op;
+       while (op>7){
+             cout << "Esa opcion no existe digite un numero del 1 al 7: ";
+             cin >> op;
+       }
+       switch(op){
+                  case 1: crearVertice(); break;
+                  case 2: enlazarVertices(); getch(); break;
+                  case 3: listarAdyacencia(); break;
+                  case 4: algoritmoPrim(); break;
+                  case 5: algoritmoDijkstra(); break;
+                  case 6: liberarMemoria (); break;
+                  case 7: exit (0);
+       }
+    }while(op<7);
 }
