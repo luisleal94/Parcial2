@@ -1,88 +1,159 @@
 #include"stdio.h"
 #include"stdlib.h"
-struct cola
+#include"string.h"
+struct vertices
 {
-	struct elementos *frente;
-	struct elementos *final;
+	char ciudad[20];
+	int marca;
+	struct arista *unir;
+	struct vertices *siguiente;
 };
 
-struct elementos{
-	struct elementos *sig;
-	int id;
-	char nombre[20];
-};
-
-struct cola2{
-	struct camino *frente;
-	struct camino *fin;
-};
-
-struct camino{
-	struct camino *siguiente;
+struct arista
+{
+	char nodo[20];
 	float peso;
-	int id;
+	float suma;
+	struct vertices *conecta;
+	struct arista *siguiente;
+
 };
 
-struct elementos *crea_nodo(struct cola **nodo,int id){
-	struct elementos *nuevo=(struct elementos *)malloc(sizeof(struct elementos));
+struct vertices *crea_vertice(struct vertices **inicio){
+	struct vertices *nuevo=(struct vertices*)malloc(sizeof(struct vertices));
 	if(!nuevo){
 		return NULL;
 	}
-	printf("Ciudad %d:",id);
+	printf("Nombre de la ciudad:");
 	fflush(stdin);
-	scanf("%[^\n]",nuevo->nombre);
-	nuevo->id=id;
-	nuevo->sig=NULL;
-	if((*nodo)->final==NULL){
-		(*nodo)->frente=nuevo;
-	}else{
-		(*nodo)->final->sig=nuevo;
-	}
-	(*nodo)->final=nuevo;
-	return (*nodo)->final;
+	scanf("%[^\n]",&nuevo->ciudad);
+	nuevo->marca=0;
+	nuevo->unir=NULL;
+	nuevo->siguiente=*inicio;
+	*inicio=nuevo;
+	return nuevo;
 }
 
-void mostrar_ciudades(struct elementos *frente){
-	if(frente){
-		printf("\nCiudad:%s",frente->nombre);
-		mostrar_ciudades(frente->sig);
+struct arista *crea_arista(struct arista **inicio,char nodo[],float peso){
+	struct arista *nuevo=(struct arista*)malloc(sizeof(struct arista));
+	if(!nuevo){
+		return NULL;
+	}
+	nuevo->conecta=NULL;
+	nuevo->peso=peso;
+	nuevo->suma=0;
+	strcpy(nuevo->nodo,nodo);
+	nuevo->siguiente=*inicio;
+	*inicio=nuevo;
+	return nuevo;
+}
+
+void mostrar_arista(struct arista *aris){
+	if(aris){
+		printf(" %s - ",aris->nodo);
+		mostrar_arista(aris->siguiente);
 	}
 	return ;
 }
 
-int crea_cola(struct cola **nodo){
-	struct cola *nuevo=(struct cola *)malloc(sizeof(struct cola));
-	if(!nuevo){
-		return 0;
+void mostrar_vertices(struct vertices *inicio){
+	if(inicio){
+		printf("\n %s -> ",inicio->ciudad);
+		mostrar_arista(inicio->unir);
+		mostrar_vertices(inicio->siguiente);
 	}
-	nuevo->frente=NULL;
-	nuevo->final=NULL;
-	*nodo=nuevo;
-	return 1;
+	return ;
 }
 
-int main(){
-	struct cola *nodo=NULL;
-	int cant,i=1,opc;
+struct vertices *busca_nodo(struct vertices *ciudad,char nodo[]){
+	if(!ciudad){
+		return NULL;
+	}
+	if(strcmp(nodo,ciudad->ciudad)==0){
+		return ciudad;
+	}
+	busca_nodo(ciudad->siguiente,nodo);
+}
+
+int enlazar(struct vertices **inicio){
+	if(!*inicio){
+		printf("\nNo existe ningun nodo"); 
+		return 0;
+	}
+	printf("Ciudades posibles\n");
+	mostrar_vertices(*inicio);
+	char nodo[20],nodo2[20];
+	float peso;
+	printf("\nCiudad de partida: ");
+	fflush(stdin);
+	scanf("%[^\n]",nodo);
+	struct vertices *aux,*aux2;
+	while((aux=busca_nodo(*inicio,nodo))==NULL){
+		printf("Error\nInserte nueva mente el nodo: ");
+		fflush(stdin);
+		scanf("%[^\n]",nodo);
+	}
+	printf("\nnodo correcto\nInserte el nodo destino: ");
+	fflush(stdin);
+	scanf("%[^\n]",nodo2);
+	while((aux2=busca_nodo(*inicio,nodo2))==NULL){
+		printf("Error\nInserte nueva mente el nodo: ");
+		fflush(stdin);
+		scanf("%[^\n]",nodo2);
+	}
+	printf("Nodos conectados correctamente");
+	printf("\nDistancia entre los nodos: ");
+	scanf("%f",&peso);
+	crea_arista(&aux->unir,nodo2,peso);
+	crea_arista(&aux2->unir,nodo,peso);
+	return 0;
+}
+
+int dkjistra(struct vertices **inicio){
+	if(!*inicio){
+		return 0;
+	}
+	char nodo[20],nodo2[20];
+	printf("\nCiudad de partida: ");
+	fflush(stdin);
+	scanf("%[^\n]",nodo);
+	struct vertices *aux,*aux2;
+	while((aux=busca_nodo(*inicio,nodo))==NULL){
+		printf("Error\nInserte nueva mente el nodo: ");
+		fflush(stdin);
+		scanf("%[^\n]",nodo);
+	}
+	printf("\nInserte el nodo destino: ");
+	fflush(stdin);
+	scanf("%[^\n]",nodo2);
+	while((aux2=busca_nodo(*inicio,nodo2))==NULL){
+		printf("Error\nInserte nueva mente el nodo: ");
+		fflush(stdin);
+		scanf("%[^\n]",nodo2);
+	}
 	
-	crea_cola(&nodo);
-	printf("\nCuanas ciudades insertara: ");
-	scanf("%d",&cant);
+	return 1;
+}
+void menu(struct vertices **inicio){
+	int opc;
 	do{
-		crea_nodo(&nodo,i);
-		cant=cant-1;
-		i=i+1;
-	}while(cant>0);
-	
-	do{
-		printf("\n1.Mostrar ciudades\n2.Salir\nOpcion:");
+		printf("1.Crear vertice\n2.Mostrar vertices\n3.Enlazar vertices\n4.Algoritmo\n5.Salir\nOpcion: ");
 		scanf("%d",&opc);
 		switch(opc){
-			case 1: mostrar_ciudades(nodo->frente); break;
-		}
-	printf("\n");
+			case 1: crea_vertice(inicio); break;
+			case 2: mostrar_vertices(*inicio); break;
+			case 3: enlazar(inicio); break;
+			case 4: dkjistra(inicio); break;
+		}	
+	printf("\n");	
 	system("pause");
 	system("cls");
-	}while(opc!=2);
+	}while(opc!=5);
+}
+
+
+int main(){
+	struct vertices *inicio=NULL;
+	menu(&inicio);
 	return 0;
 }
