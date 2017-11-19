@@ -19,6 +19,17 @@ struct arista
 
 };
 
+int crea_camino(struct vertices **camino,char nodo[]){
+	struct vertices *nuevo=(struct vertices*)malloc(sizeof(struct vertices));
+	if(!nuevo){
+		return 0;
+	}
+	strcpy(nuevo->ciudad,nodo);
+	nuevo->siguiente=*camino;
+	*camino=nuevo;
+	return 1;
+}
+
 struct vertices *crea_vertice(struct vertices **inicio){
 	struct vertices *nuevo=(struct vertices*)malloc(sizeof(struct vertices));
 	if(!nuevo){
@@ -109,10 +120,47 @@ int enlazar(struct vertices **inicio){
 	return 0;
 }
 
+struct arista *busca_menor(struct arista *origen,struct arista *menor,struct vertices *inicio){
+	if(origen==NULL){
+		return menor;
+	}
+	struct vertices *aux=busca_nodo(inicio,origen->nodo);
+	if(aux->marca==0){
+		if(menor->peso > origen->peso){
+			menor=origen;
+		}	
+	}
+	busca_menor(origen->siguiente,menor,inicio);
+	
+}
+
+int marcar(struct vertices **nodo){  //Funcion que podria ser necesaria
+	(*nodo)->marca=1;
+}
+
+int algortimo(struct vertices **origen,struct vertices **destino,struct vertices **inicio,struct vertices **camino){
+	
+	crea_camino(camino,(*origen)->ciudad);
+	if(strcmp((*origen)->ciudad,(*destino)->ciudad)==0){
+		return printf("Ciudad encontrada\nRecorrido -> ");
+		mostrar_vertices(*camino);
+		return 1;
+	}
+	struct arista *aux=(*origen)->unir;
+	struct arista *aux2=busca_menor((*origen)->unir->siguiente,aux,*inicio);
+	printf("\nCamino con menor costo: %s   Distancia: %0.1f",aux2->nodo,aux2->peso);
+	(*origen)->marca=1;
+	struct vertices *nod=busca_nodo(*inicio,aux2->nodo);
+	marcar(&nod);
+	algortimo(&nod,destino,inicio,camino);
+	return 1;	
+}
+
 int dkjistra(struct vertices **inicio){
 	if(!*inicio){
 		return 0;
 	}
+	struct vertices *camino=NULL; //lista que contendra el camino del recorrido
 	char nodo[20],nodo2[20];
 	printf("\nCiudad de partida: ");
 	fflush(stdin);
@@ -131,9 +179,10 @@ int dkjistra(struct vertices **inicio){
 		fflush(stdin);
 		scanf("%[^\n]",nodo2);
 	}
-	
+	algortimo(&aux,&aux2,inicio,&camino);
 	return 1;
 }
+
 void menu(struct vertices **inicio){
 	int opc;
 	do{
